@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from tensorflow import keras
 from sklearn.utils import shuffle
+
 def CreateModel():
 
     model = keras.Sequential([
@@ -28,7 +29,11 @@ def GetOneImagePerclass(x_train, y_train):
 
     return tf.stack(initial_images)
 
-# def InitializeCentroids():
+def InitializeCentroids(model, initial_images):
+
+    centroids = model.predict(initial_images)
+
+    return centroids
 
 
 # def AssignTargets():
@@ -54,7 +59,12 @@ if __name__ == "__main__":
     x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
     x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
 
-    initial_images = GetOneImagePerclass(x_train, y_train);
+    initial_images = GetOneImagePerclass(x_train, y_train)
+
+    centroids = InitializeCentroids(base_model, initial_images)
 
     
+
+
+
     

@@ -17,23 +17,17 @@ def CreateModel():
 
     return model
 
-def GetOneImagePerclass(x_train, y_train):
-
+def InitializeCentroids(feature_vectors, y_train):
+    
     i = 0
-    initial_images = []
-
+    centroids = []
+    
     for index, label in enumerate(y_train):
         if label == i:
-            initial_images.append(x_train[index])
+            centroids.append(feature_vectors[index])
             i += 1
 
-    return tf.stack(initial_images)
-
-def InitializeCentroids(model, initial_images):
-
-    centroids = model(initial_images)
-
-    return centroids
+    return tf.stack(centroids)
 
 def CalculateLoss(model, x, y, training):
     
@@ -53,12 +47,10 @@ def CalculateGradients(model, inputs, targets):
         
     return loss_value, tape.gradient(loss_value, model.trainable_variables)
 
-def AssignTargets(model, centroids, x_train):
+def AssignTargets(feature_vectors, centroids):
     
     y_true = []
-    
-    feature_vectors = model(x_train)
-    
+        
     for feature_vector in feature_vectors:
             
         l2_norm = tf.norm(feature_vector - centroids, axis = 1)
@@ -66,6 +58,13 @@ def AssignTargets(model, centroids, x_train):
         y_true.append(centroids[index])
     
     return tf.stack(y_true)
+
+def RecalculateCentroids(centroids, feature_vectors, y_true):
+    # Get all feature vectors assigned to centroid, by comparing the centroid from y_true
+    # Replace that centroid with the mean of all the feature vectors assigned to that centroid
+    print("TODO")
+    
+    
     
 # %% Main
 if __name__ == "__main__":
@@ -89,15 +88,18 @@ if __name__ == "__main__":
     # %% Reshape dataset to fit model (samples, height, width, channels)
     x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
     x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
-
-    # %% Get one image per class to initialize centroids
-    initial_images = GetOneImagePerclass(x_train, y_train)
     
-    # %% Initialize Centroids by passing it through the randomly initialized model
-    centroids = InitializeCentroids(model, initial_images)
+    # %% Extract feature vectors from the training set
+    feature_vectors  = model(x_train)
     
+    # %% Get one feature vector per class to initialize centroids
+    centroids = InitializeCentroids(feature_vectors, y_train)
+        
     # %% Create a vector of targets for each image, y_true = the closest centroid to them
-    y_true = AssignTargets(model, centroids, x_train)
+    y_true = AssignTargets(feature_vectors, centroids)
+    
+    # %% Adjust centroids (?)
+    centroids = RecalculateCentroids(centroids, feature_vectors, y_true)
     
     # %% Initialize Training parameters
     train_loss_results = []
@@ -114,6 +116,7 @@ if __name__ == "__main__":
         epoch_loss_avg = tf.keras.metrics.Mean()
         epoch_accuracy = tf.keras.metrics.MeanSquaredError()
         
+        # Put x_train and y_true into a dataset object and divide into batches
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_true))
         dataset = dataset.batch(batch_size)
         
@@ -135,6 +138,12 @@ if __name__ == "__main__":
         train_loss_results.append(epoch_loss_avg.result())
         train_accuracy_results.append(epoch_accuracy.result())
           
+        # Recalculate Centroids
+        centroids = RecalculateCentroids(centroids, x_train, y_true)
+        
+        # Reassign y_true for each x_train
+        y_true = AssignTargets(model, centroids, x_train)
+        
         if epoch % 50 == 0:
           print("Epoch {:03d}: Loss: {:.3f}, Accuracy: {:.3%}".format(epoch,
                                                                       epoch_loss_avg.result(),

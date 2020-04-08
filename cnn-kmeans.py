@@ -66,9 +66,11 @@ def AssignTargets(model, centroids, x_train):
         y_true.append(centroids[index])
     
     return tf.stack(y_true)
-
-
+    
+# %% Main
 if __name__ == "__main__":
+    
+    # Initialize Dataset
     
     tf.keras.backend.clear_session()
     
@@ -81,31 +83,43 @@ if __name__ == "__main__":
 
     x_train = x_train/255.0
     x_test = x_test/255.0
-
+    # %% Create Model with randomly initialized weights and biases
     model = CreateModel()
-
+    
+    # %% Reshape dataset to fit model (samples, height, width, channels)
     x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
     x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
 
+    # %% Get one image per class to initialize centroids
     initial_images = GetOneImagePerclass(x_train, y_train)
-
+    
+    # %% Initialize Centroids by passing it through the randomly initialized model
     centroids = InitializeCentroids(model, initial_images)
     
+    # %% Create a vector of targets for each image, y_true = the closest centroid to them
     y_true = AssignTargets(model, centroids, x_train)
     
+    # %% Initialize Training parameters
     train_loss_results = []
     train_accuracy_results = []
     
     num_epochs = 10
+    samples_per_batch = 32
+    batch_size =  tf.cast(x_train.shape[0]/samples_per_batch, tf.int64)
     
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.001)
     
+    # %% Start training
     for epoch in range(num_epochs):
         epoch_loss_avg = tf.keras.metrics.Mean()
         epoch_accuracy = tf.keras.metrics.MeanSquaredError()
         
+        dataset = tf.data.Dataset.from_tensor_slices((x_train, y_true))
+        dataset = dataset.batch(batch_size)
+        
         # Training loop - using batches of 32
-        for x, y in zip(x_train, y_true):
+        for x, y in dataset:
+
             # Optimize the model
             loss_value, grads = CalculateGradients(model, x, y)
             optimizer.apply_gradients(zip(grads, model.trainable_variables))

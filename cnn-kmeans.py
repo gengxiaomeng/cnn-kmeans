@@ -157,10 +157,7 @@ if __name__ == "__main__":
         
         # Recalculate Centroids
         centroids = RecalculateCentroids(centroids, feature_vectors, y_true)
-        
-        # Recalculate feature vectors
-        feature_vectors = model(x_train)
-        
+
         # Reassign y_true for each x_train
         y_true = AssignTargets(feature_vectors, centroids)
         

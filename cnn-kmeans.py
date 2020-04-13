@@ -13,9 +13,9 @@ def CreateModel():
     # Create a sequantial model
     model = keras.Sequential([
     keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform', input_shape=(28, 28, 1)),
-    keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
+    # keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
     keras.layers.Flatten(),
-    keras.layers.Dense(16, activation='relu', bias_initializer='glorot_uniform'),
+    keras.layers.Dense(16, activation='sigmoid', bias_initializer='glorot_uniform'),
     ])
 
     return model
@@ -84,33 +84,34 @@ def RecalculateCentroids(centroids, feature_vectors, y_true):
 def EvaluateModel(x_test, y_test, model, centroids):
     
     correct_predictions = 0
-    feature_vectors = model(x_test)
+    feature_vectors = CreateFeatureVectors(model, x_test)
     predictions = []
     
     for index, feature_vector in enumerate(feature_vectors):
         l2_norm = tf.norm(feature_vector - centroids, axis = 1)
         prediction = tf.math.argmin(l2_norm)
-        predictions.append(prediction)
+        predictions.append(prediction.numpy())
         
         if prediction == y_test[index]:
             correct_predictions += 1
     
     total_accuracy = correct_predictions/y_test.shape[0]
     
-    print(total_accuracy)
+    print("Pseudo-accuracy: {}".format(total_accuracy))
     
     # Create confusion matrix
-    confusion_matrix = tf.math.confusion_matrix(y_test, tf.stack(predictions), num_classes = 10)
+    confusion_matrix = tf.math.confusion_matrix(y_test, predictions, num_classes = 10).numpy()
     
     # Plot Confusion Matrix
     df_cm = pd.DataFrame(confusion_matrix, range(10), range(10))
-    plt.figure(figsize=(10,7))
-    sn.set(font_scale=1.4) # for label size
-    sn.heatmap(df_cm, annot=True, annot_kws={"size": 16}) # font size
+    df_cm.fillna(value=np.nan, inplace=True)
+    plt.figure(figsize=(10,10))
+    sn.set(font_scale=0.8) # for label size
+    sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
 
     plt.show()
     
-def CreateFeatureVectors(model, x_train, batch_size):
+def CreateFeatureVectors(model, x_train, batch_size = 32):
     # Split the dataset into batches to make it trainable on the GPU
     x_dataset = tf.data.Dataset.from_tensor_slices(x_train)
     x_dataset = x_dataset.batch(batch_size)
@@ -160,7 +161,7 @@ if __name__ == "__main__":
     y_true = AssignTargets(feature_vectors, centroids)
     
     # %% Adjust centroids (?)
-    centroids = RecalculateCentroids(centroids, feature_vectors, y_true)
+    # centroids = RecalculateCentroids(centroids, feature_vectors, y_true)
     
     # %% Initialize Training parameters
     train_loss_results = []
@@ -206,15 +207,20 @@ if __name__ == "__main__":
         
         # Print results per epoch
         if epoch % 1 == 0:
-          print("Epoch {:03d}: Loss: {:.6f}, MSE: {:.6f}".format(epoch,
-                                                                      epoch_loss_avg.result(),
-                                                                      epoch_mse.result()))
-    print("Done training! Saving Weights")          
-    model.save("./saved_model")
+            print("Epoch {:03d}: Loss: {:.6f}, MSE: {:.6f}".format(epoch,
+                                                                   epoch_loss_avg.result(),
+
+                                                                   epoch_mse.result()))
+        # Evaluate Model during training. This is just a test to see what the behavior is during training
+        EvaluateModel(x_test, y_test, model, centroids)
+
+          
+    # print("Done training! Saving Weights")          
+    # model.save("saved_model")
     
-    # %% Evaluate Model
     
-    EvaluateModel(x_test, y_test, model, centroids)
+    
+    print("=============================Done!=============================")
     
     
 

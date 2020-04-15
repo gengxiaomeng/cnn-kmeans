@@ -7,11 +7,6 @@ from tensorflow.keras import layers
 from sklearn.utils import shuffle
 
 
-TRAIN_BUF = 60000
-BATCH_SIZE = 100
-
-TEST_BUF = 10000
-
 def  CreateAutoEncoder():
 
     encoder_input = keras.Input(shape=(28, 28, 1), name='img')
@@ -22,7 +17,6 @@ def  CreateAutoEncoder():
     encoder_output = layers.Conv2D(8, 3, padding='same', activation='relu')(x)
    
     encoder = keras.Model(encoder_input, encoder_output, name='encoder')
-    encoder.summary()
 
     x = layers.Conv2DTranspose(8, 3, activation='relu', padding='same')(encoder_output)
     x = layers.UpSampling2D(2)(x)
@@ -31,15 +25,22 @@ def  CreateAutoEncoder():
     decoder_output = layers.Conv2DTranspose(1, 3, activation='relu', padding='same')(x)
     
     autoencoder = keras.Model(encoder_input, decoder_output, name='autoencoder')
-    autoencoder.summary()
+
     return autoencoder, encoder
 
 if __name__ == "__main__":
     
+    # Clear session
     tf.keras.backend.clear_session()
 
+    # Grab training set
     (train_images, _), (test_images, y_test) = tf.keras.datasets.mnist.load_data()
+    
+    # Shuffle training and test sets
+    train_images = shuffle(train_images)
+    test_images, y_test = shuffle(test_images, y_test)
 
+    # Reshape training set to match network inputs
     train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
     test_images = test_images.reshape(test_images.shape[0], 28, 28, 1).astype('float32')
 
@@ -47,16 +48,23 @@ if __name__ == "__main__":
     train_images /= 255.
     test_images /= 255.
 
+    # Grab encoder and autoencoder networks
     autoencoder, encoder = CreateAutoEncoder()
     
+    # Print encoder and autoencoder summary
+    encoder.summary()
+    autoencoder.summary()
+    
+    # Define optimizer
     optimizer = tf.keras.optimizers.Adam(1e-4)
     
+    # Compile autoencoder
     autoencoder.compile(optimizer=optimizer, loss="mse")
     
-    autoencoder.summary()
-
+    # Train autoencoder
     history = autoencoder.fit(train_images, train_images, epochs=10, batch_size=64, verbose=1)
 
+    # Predict on test set
     restored_testing_dataset = autoencoder.predict(test_images)
     
     plt.figure(figsize=(20,5))

@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+
+---
+channels: 3
+classes: 10
+trials: 10
+epochs: 200
+batch_size: 100
+train_autoencoder: True
+...

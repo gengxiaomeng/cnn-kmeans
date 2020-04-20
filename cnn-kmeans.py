@@ -113,7 +113,7 @@ if __name__ == "__main__":
         y_true = tools.AssignTargets(feature_vectors, centroids)
 
         # # Recalculate Centroids
-        centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
+        # centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
 
         # Print results per epoch
         if epoch % 1 == 0:

@@ -5,6 +5,7 @@ channels: 3
 classes: 10
 trials: 10
 epochs: 100
-batch_size: 100
+batch_size: 200
 train_autoencoder: True
+autoencoder_epochs: 100
 ...

@@ -10,9 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 import pandas as pd
 
-
 from tensorflow import keras
-from sklearn.utils import shuffle
 
 def CreateModel():
     # Create a sequantial model
@@ -29,7 +27,7 @@ def InitializeCentroids(feature_vectors, y_train, num_classes = 10):
     # Get one centroid per class
     i = 0
     centroids = []
-    
+
     for i in range(10):
         index = y_train.tolist().index(i)
         centroids.append(feature_vectors[index])
@@ -38,7 +36,6 @@ def InitializeCentroids(feature_vectors, y_train, num_classes = 10):
 
 def CalculateLoss(model, x, y, training):
     # Calculate MSE loss between y_true and prediction.
-
     loss_object = tf.keras.losses.MeanSquaredError()
 
     y_ = model(x, training=training)
@@ -53,18 +50,22 @@ def CalculateGradients(model, inputs, targets):
 
     return loss_value, tape.gradient(loss_value, model.trainable_variables)
 
-def AssignTargets(feature_vectors, centroids):
+def AssignTargets(feature_vectors, centroids, batch_size = 32):
     # Assign y_true for each vector where y_true = the closest centroid
+    index = []
 
-    features_expanded = tf.expand_dims(feature_vectors, 0)
-    centroids_expanded = tf.expand_dims(centroids, 1)
+    feature_dataset = tf.data.Dataset.from_tensor_slices(feature_vectors)
+    feature_dataset = feature_dataset.batch(batch_size)
 
-    distances = tf.reduce_sum(tf.square(tf.subtract(features_expanded, centroids_expanded)), 2)
+    for feature_vector in feature_dataset:
+        features_expanded = tf.expand_dims(feature_vector, 0)
+        centroids_expanded = tf.expand_dims(centroids, 1)
 
-    index = tf.math.argmin(distances, 0)
+        distances = tf.reduce_sum(tf.square(tf.subtract(features_expanded, centroids_expanded)), 2)
 
-    tf.print("=======Done assigning y_true!=======")
-    return tf.gather(centroids, index)
+        index.extend(tf.math.argmin(distances, 0))
+
+    return tf.gather(centroids, index), index
 
 def RecalculateCentroids(centroids, feature_vectors, y_true):
     # Get all feature vectors assigned to centroid, by comparing the centroid from y_true
@@ -76,23 +77,18 @@ def RecalculateCentroids(centroids, feature_vectors, y_true):
         keep = tf.reduce_all(tf.math.equal(y_true, centroid), axis=1)
         tf.print(tf.reduce_sum(tf.cast(keep, tf.float32)), "Samples in centroid", count)
 
-
         x_temp = feature_vectors[keep]
 
         new_centroids.append(tf.reduce_mean(x_temp, axis = 0))
 
-    tf.print("=======Done recalculating centroids!=======")
+    print("================== Done recalculating centroids! ==================")
     return tf.stack(new_centroids)
 
-def EvaluateModel(x_test, y_test, model, centroids):
+def EvaluateModel(x_test, y_test, model, centroids, batch_size = 32):
 
     feature_vectors = CreateFeatureVectors(model, x_test)
-    features_expanded = tf.expand_dims(feature_vectors, 0)
-    centroids_expanded = tf.expand_dims(centroids, 1)
 
-    distances = tf.reduce_sum(tf.square(tf.subtract(features_expanded, centroids_expanded)), 2)
-
-    predictions = tf.math.argmin(distances, 0)
+    _, predictions = AssignTargets(feature_vectors, centroids, batch_size)
 
     correct_predictions = tf.reduce_sum(tf.cast(tf.math.equal(y_test, predictions), tf.float32))
 
@@ -123,3 +119,14 @@ def CreateFeatureVectors(model, x_train, batch_size = 32):
         feature_vectors.append(model(x, training = False))
 
     return tf.concat(feature_vectors, axis = 0)
+
+def AddFullyConnectedLayer(base_model):
+
+    # x = keras.layers.Flatten()(base_model.output)
+    x = keras.layers.Dense(98, activation='sigmoid', bias_initializer='glorot_uniform')(base_model.output)
+    x = keras.layers.Dense(49, activation='sigmoid', bias_initializer='glorot_uniform')(x)
+    x = keras.layers.Dense(25, activation='sigmoid', bias_initializer='glorot_uniform')(x)
+
+    model = keras.Model(base_model.input, x)
+
+    return model

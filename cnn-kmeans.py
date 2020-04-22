@@ -125,7 +125,7 @@ if __name__ == "__main__":
         centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
 
                 # Print results per epoch
-        if epoch % 10 == 0:
+        if epoch % 1 == 0:
             print("Epoch {:03d}: Loss: {:.6f}, MSE: {:.6f}".format(epoch,
                                                                    epoch_loss_avg.result(),
                                                                    epoch_mse.result()))
@@ -137,6 +137,11 @@ if __name__ == "__main__":
     print("Done training! Evaluating on Test Set")
     tools.EvaluateModel(x_test, y_test, model, centroids, batch_size)
     # model.save("trained_kmeans_model")
+
+    print("Plotting training results")
+    tools.PlotResults(train_accuracy_results, train_loss_results)
+
+
 
 
 

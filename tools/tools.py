@@ -130,3 +130,17 @@ def AddFullyConnectedLayer(base_model):
     model = keras.Model(base_model.input, x)
 
     return model
+
+def PlotResults(accuracy, loss):
+
+    fig, axes = plt.subplots(2, sharex=True, figsize=(12, 8))
+    fig.suptitle('Training Metrics')
+
+    axes[0].set_ylabel("Loss", fontsize=14)
+    axes[0].plot(loss)
+
+    axes[1].set_ylabel("MSE", fontsize=14)
+    axes[1].set_xlabel("Epoch", fontsize=14)
+    axes[1].plot(accuracy)
+    plt.show()
+

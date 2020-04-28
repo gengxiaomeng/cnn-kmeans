@@ -4,6 +4,8 @@ Created on Fri Apr 17 15:19:42 2020
 
 @author: Juicebox
 """
+import os
+import csv
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -84,7 +86,8 @@ def RecalculateCentroids(centroids, feature_vectors, y_true):
     print("================== Done recalculating centroids! ==================")
     return tf.stack(new_centroids)
 
-def EvaluateModel(x_test, y_test, model, centroids, batch_size = 32):
+def EvaluateModel(x_test, y_test, model, centroids, epoch, trial, batch_size=32,
+                  save_matrix=False, training_set=True, save_directory=None):
 
     feature_vectors = CreateFeatureVectors(model, x_test)
 
@@ -92,21 +95,36 @@ def EvaluateModel(x_test, y_test, model, centroids, batch_size = 32):
 
     correct_predictions = tf.reduce_sum(tf.cast(tf.math.equal(y_test, predictions), tf.float32))
 
-    total_accuracy = correct_predictions/y_test.shape[0]
+    pseudo_accuracy = correct_predictions/y_test.shape[0]
 
-    print("Pseudo-accuracy: {}".format(total_accuracy))
+    print("Pseudo-accuracy: {}".format(pseudo_accuracy))
 
-    # Create confusion matrix
-    confusion_matrix = tf.math.confusion_matrix(y_test, predictions, num_classes = 10).numpy()
+    if save_matrix:
 
-    # Plot Confusion Matrix
-    df_cm = pd.DataFrame(confusion_matrix, range(10), range(10))
-    df_cm.fillna(value=np.nan, inplace=True)
-    plt.figure(figsize=(10,10))
-    sn.set(font_scale=0.8) # for label size
-    sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
+        save_directory = os.path.join(save_directory, "{}".format(trial))
 
-    plt.show()
+        if os.path.isdir(save_directory) == False:
+            os.mkdir(save_directory)
+
+        # Create confusion matrix
+        confusion_matrix = tf.math.confusion_matrix(y_test, predictions, num_classes = 10).numpy()
+
+        # Plot Confusion Matrix
+        df_cm = pd.DataFrame(confusion_matrix, range(10), range(10))
+        df_cm.fillna(value=np.nan, inplace=True)
+        plt.figure(figsize=(10,10))
+        sn.set(font_scale=0.8) # for label size
+        sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
+
+        if training_set:
+            plt.savefig(os.path.join(save_directory, "Training Set Confusion Matrix Trial {} Epoch {}".format(trial, epoch)),
+                        bbox_inches = 'tight', pad_inches = 0)
+        else:
+            plt.savefig(os.path.join(save_directory, "Test Set Confusion Matrix Trial {} Epoch {}".format(trial, epoch)),
+                        bbox_inches = 'tight', pad_inches = 0)
+
+        plt.close()
+    return pseudo_accuracy
 
 def CreateFeatureVectors(model, x_train, batch_size = 32):
     # Split the dataset into batches to make it trainable on the GPU
@@ -116,7 +134,7 @@ def CreateFeatureVectors(model, x_train, batch_size = 32):
     feature_vectors = []
 
     for x in x_dataset:
-        feature_vectors.append(model(x, training = False))
+        feature_vectors.append(model(x, training=False))
 
     return tf.concat(feature_vectors, axis = 0)
 
@@ -131,7 +149,7 @@ def AddFullyConnectedLayer(base_model):
 
     return model
 
-def PlotResults(accuracy, loss):
+def PlotTrainingResults(accuracy, loss, save_directory, trial):
 
     fig, axes = plt.subplots(2, sharex=True, figsize=(12, 8))
     fig.suptitle('Training Metrics')
@@ -139,8 +157,40 @@ def PlotResults(accuracy, loss):
     axes[0].set_ylabel("Loss", fontsize=14)
     axes[0].plot(loss)
 
-    axes[1].set_ylabel("MSE", fontsize=14)
+    axes[1].set_ylabel("Pseudo-accuracy", fontsize=14)
     axes[1].set_xlabel("Epoch", fontsize=14)
     axes[1].plot(accuracy)
-    plt.show()
+
+    save_directory = os.path.join(save_directory, "{}".format(trial))
+
+    if os.path.isdir(save_directory) == False:
+        os.mkdir(save_directory)
+
+    plt.savefig(os.path.join(save_directory, "Training Results Trial {}".format(trial)),
+                bbox_inches = 'tight', pad_inches = 0.1)
+    plt.close()
+
+def PlotTestResults(accuracy, save_directory, trial):
+
+    save_directory = os.path.join(save_directory, "{}".format(trial))
+
+    if os.path.isdir(save_directory) == False:
+        os.mkdir(save_directory)
+
+    plt.figure()
+    plt.plot(accuracy)
+    plt.title('Accuracy on Test Set during Training')
+    plt.xlabel('Epoch')
+    plt.ylabel('Pseudo-accuracy')
+    plt.savefig(os.path.join(save_directory, "Trial {}".format(trial)),
+                bbox_inches = 'tight', pad_inches = 0.1)
+    plt.close()
+
+def SaveValues(training_accuracy, test_accuracy, trial, results_save_file):
+
+    with open(results_save_file, "a", newline="") as csv_file:
+        scoreWriter = csv.writer(csv_file)
+        scoreWriter.writerow([trial, training_accuracy, test_accuracy])
+
+
 

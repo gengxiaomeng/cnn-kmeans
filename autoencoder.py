@@ -43,7 +43,7 @@ def CreateAutoEncoder():
 
     return autoencoder, encoder
 
-def TrainAutoencoder(train_images, test_images, y_test, batch_size, epochs):
+def TrainAutoencoder(train_images, test_images, y_test, batch_size, epochs, learning_rate):
 
     # Shuffle training and test sets
     train_images = shuffle(train_images)
@@ -61,7 +61,7 @@ def TrainAutoencoder(train_images, test_images, y_test, batch_size, epochs):
     autoencoder.summary()
 
     # Define optimizer
-    optimizer = tf.keras.optimizers.Adam(1e-4)
+    optimizer = tf.keras.optimizers.Adam(learning_rate = learning_rate)
 
     # Compile autoencoder
     autoencoder.compile(optimizer=optimizer, loss="mse")

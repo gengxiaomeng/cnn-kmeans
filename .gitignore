@@ -1,6 +1,7 @@
 saved_model/
 encoder_model/
 figures/
+results/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -88,7 +88,7 @@ def RecalculateCentroids(centroids, feature_vectors, y_true):
     return tf.stack(new_centroids)
 
 def EvaluateModel(x_test, y_test, model, centroids, epoch, trial, batch_size=32,
-                  save_matrix=False, training_set=True, save_directory=None):
+                  save_matrix=False, training_set=True, save_directory=os.getcwd()):
 
     feature_vectors = CreateFeatureVectors(model, x_test)
 
@@ -129,6 +129,28 @@ def EvaluateModel(x_test, y_test, model, centroids, epoch, trial, batch_size=32,
 
         plt.close()
     return pseudo_accuracy
+
+def ComputeCentroidDistances(centroids, trial, epoch, save_directory=os.getcwd()):
+    # Compute the pairwise distance between centroid locations
+    expanded_a = tf.expand_dims(centroids, 1)
+    expanded_b = tf.expand_dims(centroids, 0)
+    distances = tf.reduce_sum(tf.squared_difference(expanded_a, expanded_b), 2)
+
+    df_cm = pd.DataFrame(distances, range(10), range(10))
+    df_cm.fillna(value=np.nan, inplace=True)
+    plt.figure(figsize=(10,10))
+    sn.set(font_scale=0.8) # for label size
+    sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
+
+    plt.xlabel("Centroid #")
+    plt.ylabel("Centroid #")
+
+    plt.savefig(os.path.join(save_directory, "Pair-wise Distance between Centroids Trial {} Epoch {}".format(trial, epoch)),
+                    bbox_inches = 'tight', pad_inches = 0.1)
+
+    plt.close()
+
+    return distances
 
 def CreateFeatureVectors(model, x_train, batch_size = 32):
     # Split the dataset into batches to make it trainable on the GPU

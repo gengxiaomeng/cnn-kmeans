@@ -96,6 +96,9 @@ if __name__ == "__main__":
         # %% Adjust centroids (?)
         centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
 
+        # %% Get centroid pairwise distance
+        tools.ComputeCentroidDistances(centroids, trial, 0, save_directory)
+
         # %% Initialize Training parameters
         train_loss_results = []
         train_accuracy_results = []
@@ -173,6 +176,9 @@ if __name__ == "__main__":
 
         print("Saving test and training accuracy values")
         tools.SaveValues(train_pseudo_accuracy[-1].numpy(), test_pseudo_accuracy[-1].numpy(), trial, results_save_file)
+
+        print("Plotting pair-wise centroid distances")
+        tools.ComputeCentroidDistances(centroids, trial, epoch, save_directory)
 
     print("=============================Done!=============================")
 

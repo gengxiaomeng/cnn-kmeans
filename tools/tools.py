@@ -18,7 +18,8 @@ def CreateModel():
     # Create a sequantial model
     model = keras.Sequential([
     keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform', input_shape=(28, 28, 1)),
-    # keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
+    keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
+    keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
     keras.layers.Flatten(),
     keras.layers.Dense(16, activation='sigmoid', bias_initializer='glorot_uniform'),
     ])
@@ -116,12 +117,15 @@ def EvaluateModel(x_test, y_test, model, centroids, epoch, trial, batch_size=32,
         sn.set(font_scale=0.8) # for label size
         sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
 
+        plt.xlabel("Centroid")
+        plt.ylabel("y_true")
+
         if training_set:
             plt.savefig(os.path.join(save_directory, "Training Set Confusion Matrix Trial {} Epoch {}".format(trial, epoch)),
-                        bbox_inches = 'tight', pad_inches = 0)
+                        bbox_inches = 'tight', pad_inches = 0.1)
         else:
             plt.savefig(os.path.join(save_directory, "Test Set Confusion Matrix Trial {} Epoch {}".format(trial, epoch)),
-                        bbox_inches = 'tight', pad_inches = 0)
+                        bbox_inches = 'tight', pad_inches = 0.1)
 
         plt.close()
     return pseudo_accuracy
@@ -154,9 +158,11 @@ def PlotTrainingResults(accuracy, loss, save_directory, trial):
     fig, axes = plt.subplots(2, sharex=True, figsize=(12, 8))
     fig.suptitle('Training Metrics')
 
+    axes[0].grid(False)
     axes[0].set_ylabel("Loss", fontsize=14)
     axes[0].plot(loss)
 
+    axes[1].grid(False)
     axes[1].set_ylabel("Pseudo-accuracy", fontsize=14)
     axes[1].set_xlabel("Epoch", fontsize=14)
     axes[1].plot(accuracy)
@@ -166,6 +172,7 @@ def PlotTrainingResults(accuracy, loss, save_directory, trial):
     if os.path.isdir(save_directory) == False:
         os.mkdir(save_directory)
 
+    plt.grid(b=None)
     plt.savefig(os.path.join(save_directory, "Training Results Trial {}".format(trial)),
                 bbox_inches = 'tight', pad_inches = 0.1)
     plt.close()
@@ -178,6 +185,7 @@ def PlotTestResults(accuracy, save_directory, trial):
         os.mkdir(save_directory)
 
     plt.figure()
+    plt.grid(b=None)
     plt.plot(accuracy)
     plt.title('Accuracy on Test Set during Training')
     plt.xlabel('Epoch')

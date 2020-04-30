@@ -3,12 +3,14 @@
 ---
 channels: 3
 classes: 10
-trials: 5
+trials: 10
 epochs: 100
 batch_size: 200
 learning_rate: 0.01
+use_autoencoder: False
 train_autoencoder: True
 autoencoder_epochs: 50
 autoencoder_learning_rate: 0.0001
+save_encoder_model: False
 save_folder_name: "results"
 ...

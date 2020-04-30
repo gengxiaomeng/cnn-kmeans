@@ -28,10 +28,12 @@ if __name__ == "__main__":
     trials = args['trials']
     epochs = args['epochs']
     batch_size = args['batch_size']
-    train_autoencoder = args['train_autoencoder']
     learning_rate = args['learning_rate']
+    use_autoencoder = args['use_autoencoder']
+    train_autoencoder = args['train_autoencoder']
     autoencoder_learning_rate = args['autoencoder_learning_rate']
     autoencoder_epochs = args['autoencoder_epochs']
+    save_encoder_model = args['save_encoder_model']
     save_folder_name = args['save_folder_name']
 
     save_directory = os.path.join(os.getcwd(), save_folder_name)
@@ -58,21 +60,26 @@ if __name__ == "__main__":
         x_test = x_test/255.0
 
         # %% Grab Model trained from autoencoder
-        if not os.path.isdir('encoder_model') or train_autoencoder == True:
-            print("Training autoencoder...")
-            model = autoencoder.TrainAutoencoder(x_train, x_test, y_test, batch_size, autoencoder_epochs, autoencoder_learning_rate)
+        if use_autoencoder:
+            if not os.path.isdir('encoder_model') or train_autoencoder == True:
+                print("Training autoencoder...")
+                model = autoencoder.TrainAutoencoder(x_train, x_test, y_test, batch_size, trial, autoencoder_epochs,
+                                                     autoencoder_learning_rate, save_encoder_model, save_directory)
+            else:
+                print("Loading model...")
+                model = tf.keras.models.load_model('encoder_model')
+
+            # Disable training for convolutional layers and add dense layers
+            for layer in model.layers:
+                if 'conv2d' in layer.name:
+                    layer.trainable = False
+
+        # Use randomly initialized ConvNet instead
         else:
-            print("Loading model...")
-            model = tf.keras.models.load_model('encoder_model')
+            model = tools.CreateModel()
 
         model.summary()
-        #%% Disable training for convolutional layers and add dense layers
 
-        for layer in model.layers:
-            if 'conv2d' in layer.name:
-                layer.trainable = False
-
-        model.summary()
         # %% Reshape dataset to fit model (samples, height, width, channels)
         x_train = x_train.reshape(x_train.shape[0], 28, 28, 1).astype('float32')
         x_test = x_test.reshape(x_test.shape[0], 28, 28, 1).astype('float32')
@@ -139,7 +146,7 @@ if __name__ == "__main__":
             # Recalculate Centroids
             centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
 
-                    # Print results per epoch
+            # Print results per epoch
             if epoch % 1 == 0:
                 print("Epoch {:03d}: Loss: {:.6f}, MSE: {:.6f}".format(epoch,
                                                                        epoch_loss_avg.result(),

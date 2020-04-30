@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -43,7 +44,8 @@ def CreateAutoEncoder():
 
     return autoencoder, encoder
 
-def TrainAutoencoder(train_images, test_images, y_test, batch_size, epochs, learning_rate):
+def TrainAutoencoder(train_images, test_images, y_test, batch_size, trial,
+                     epochs, learning_rate, save_encoder_model, save_directory):
 
     # Shuffle training and test sets
     train_images = shuffle(train_images)
@@ -88,8 +90,12 @@ def TrainAutoencoder(train_images, test_images, y_test, batch_size, epochs, lear
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-    plt.show()
-    # Save encoder model
-    encoder.save("encoder_model")
+    save_file_name = os.path.join(save_directory, "Autoencoder Results Trial {}".format(trial))
+    plt.savefig(save_file_name)
+    plt.close()
+
+    if save_encoder_model:
+        # Save encoder model
+        encoder.save("encoder_model")
 
     return encoder

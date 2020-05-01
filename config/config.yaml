@@ -3,7 +3,7 @@
 ---
 channels: 3
 classes: 10
-trials: 10
+trials: 1
 epochs: 100
 batch_size: 200
 learning_rate: 0.01

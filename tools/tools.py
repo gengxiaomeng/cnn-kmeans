@@ -18,8 +18,8 @@ def CreateModel():
     # Create a sequantial model
     model = keras.Sequential([
     keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform', input_shape=(28, 28, 1)),
-    keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
-    keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
+    # keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
+    # keras.layers.Conv2D(32, (3,3), activation = 'relu', padding='valid', bias_initializer='glorot_uniform'),
     keras.layers.Flatten(),
     keras.layers.Dense(16, activation='sigmoid', bias_initializer='glorot_uniform'),
     ])
@@ -134,23 +134,15 @@ def ComputeCentroidDistances(centroids, trial, epoch, save_directory=os.getcwd()
     # Compute the pairwise distance between centroid locations
     expanded_a = tf.expand_dims(centroids, 1)
     expanded_b = tf.expand_dims(centroids, 0)
-    distances = tf.reduce_sum(tf.squared_difference(expanded_a, expanded_b), 2)
 
-    df_cm = pd.DataFrame(distances, range(10), range(10))
-    df_cm.fillna(value=np.nan, inplace=True)
-    plt.figure(figsize=(10,10))
-    sn.set(font_scale=0.8) # for label size
-    sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
+    # This produces a matrix of pair-wise distances between the centroids
+    distances = tf.reduce_sum(tf.math.squared_difference(expanded_a, expanded_b), 2).numpy()
 
-    plt.xlabel("Centroid #")
-    plt.ylabel("Centroid #")
+    # Calculate average distance
+    sum_distances = tf.reduce_sum(distances)/2
+    average_distance = sum_distances/len(centroids)
 
-    plt.savefig(os.path.join(save_directory, "Pair-wise Distance between Centroids Trial {} Epoch {}".format(trial, epoch)),
-                    bbox_inches = 'tight', pad_inches = 0.1)
-
-    plt.close()
-
-    return distances
+    return average_distance
 
 def CreateFeatureVectors(model, x_train, batch_size = 32):
     # Split the dataset into batches to make it trainable on the GPU
@@ -212,7 +204,23 @@ def PlotTestResults(accuracy, save_directory, trial):
     plt.title('Accuracy on Test Set during Training')
     plt.xlabel('Epoch')
     plt.ylabel('Pseudo-accuracy')
-    plt.savefig(os.path.join(save_directory, "Trial {}".format(trial)),
+    plt.savefig(os.path.join(save_directory, "Test Results Trial {}".format(trial)),
+                bbox_inches = 'tight', pad_inches = 0.1)
+    plt.close()
+
+def PlotAverageCentroidDistance(centroid_distances, save_directory, trial):
+    save_directory = os.path.join(save_directory, "{}".format(trial))
+
+    if os.path.isdir(save_directory) == False:
+        os.mkdir(save_directory)
+
+    plt.figure()
+    plt.grid(b=None)
+    plt.plot(centroid_distances)
+    plt.title('Average pair-wise centroid distance')
+    plt.xlabel('Epoch')
+    plt.ylabel('Distance')
+    plt.savefig(os.path.join(save_directory, "Average Centroid Distance Trial {}".format(trial)),
                 bbox_inches = 'tight', pad_inches = 0.1)
     plt.close()
 

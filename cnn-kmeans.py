@@ -48,6 +48,13 @@ if __name__ == "__main__":
 
         tf.keras.backend.clear_session()
 
+        # %% Initialize Training parameters
+        average_centroid_distance = []
+        train_loss_results = []
+        train_accuracy_results = []
+        train_pseudo_accuracy = []
+        test_pseudo_accuracy = []
+
         # %%Initialize Dataset
         mnist = keras.datasets.mnist
 
@@ -58,6 +65,9 @@ if __name__ == "__main__":
 
         x_train = x_train/255.0
         x_test = x_test/255.0
+
+        optimizer = tf.keras.optimizers.SGD(learning_rate = learning_rate)
+        batches = len(x_train)/batch_size
 
         # %% Grab Model trained from autoencoder
         if use_autoencoder:
@@ -97,16 +107,7 @@ if __name__ == "__main__":
         centroids = tools.RecalculateCentroids(centroids, feature_vectors, y_true)
 
         # %% Get centroid pairwise distance
-        tools.ComputeCentroidDistances(centroids, trial, 0, save_directory)
-
-        # %% Initialize Training parameters
-        train_loss_results = []
-        train_accuracy_results = []
-        train_pseudo_accuracy = []
-        test_pseudo_accuracy = []
-
-        optimizer = tf.keras.optimizers.SGD(learning_rate = learning_rate)
-        batches = len(x_train)/batch_size
+        average_centroid_distance.append(tools.ComputeCentroidDistances(centroids, trial, 0, save_directory))
 
         # %% Start training
         for epoch in range(epochs):
@@ -163,6 +164,9 @@ if __name__ == "__main__":
                 test_pseudo_accuracy.append(tools.EvaluateModel(x_test, y_test, model, centroids, epoch,
                                                                 trial, batch_size, False, False, save_directory))
 
+                # Evaluate distance between centroids
+                average_centroid_distance.append(tools.ComputeCentroidDistances(centroids, trial, 0, save_directory))
+
 
         print("Plotting training results")
         tools.PlotTrainingResults(train_pseudo_accuracy, train_loss_results, save_directory, trial)
@@ -178,7 +182,7 @@ if __name__ == "__main__":
         tools.SaveValues(train_pseudo_accuracy[-1].numpy(), test_pseudo_accuracy[-1].numpy(), trial, results_save_file)
 
         print("Plotting pair-wise centroid distances")
-        tools.ComputeCentroidDistances(centroids, trial, epoch, save_directory)
+        tools.PlotAverageCentroidDistance(average_centroid_distance, save_directory, trial)
 
     print("=============================Done!=============================")
 

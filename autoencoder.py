@@ -90,7 +90,7 @@ def TrainAutoencoder(train_images, test_images, y_test, batch_size, trial,
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-    save_file_name = os.path.join(save_directory, "Autoencoder Results Trial {}".format(trial))
+    save_file_name = os.path.join(save_directory, "Autoencoder Reconstruction Trial {}".format(trial))
     plt.savefig(save_file_name)
     plt.close()
 

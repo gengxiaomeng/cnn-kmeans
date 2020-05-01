@@ -186,7 +186,6 @@ def PlotTrainingResults(accuracy, loss, save_directory, trial):
     if os.path.isdir(save_directory) == False:
         os.mkdir(save_directory)
 
-    plt.grid(b=None)
     plt.savefig(os.path.join(save_directory, "Training Results Trial {}".format(trial)),
                 bbox_inches = 'tight', pad_inches = 0.1)
     plt.close()
@@ -245,7 +244,7 @@ def PlotHistory(history, save_directory, trial):
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
 
-    plt.savefig(os.path.join(save_directory, "Average Centroid Distance Trial {}".format(trial)),
+    plt.savefig(os.path.join(save_directory, "Autoencoder Loss History {}".format(trial)),
                 bbox_inches = 'tight', pad_inches = 0.1)
     plt.close()
 

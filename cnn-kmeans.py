@@ -171,7 +171,7 @@ if __name__ == "__main__":
                 average_centroid_distance.append(tools.ComputeCentroidDistances(centroids, trial, 0, save_directory))
 
 
-        print("Plotting training results")
+        print("Plotting and Saving training results")
         tools.PlotTrainingResults(train_pseudo_accuracy, train_loss_results, save_directory, trial)
         train_pseudo_accuracy.append(tools.EvaluateModel(x_train, y_train, model, centroids, epoch,
                                                          trial, batch_size, True, True, save_directory))

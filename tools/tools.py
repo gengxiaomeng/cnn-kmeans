@@ -235,6 +235,9 @@ def PlotHistory(history, save_directory, trial):
 
     save_directory = os.path.join(save_directory, "{}".format(trial))
 
+    if os.path.isdir(save_directory) == False:
+        os.mkdir(save_directory)
+
     plt.figure()
     plt.grid(b=None)
     plt.plot(history.history['loss'])

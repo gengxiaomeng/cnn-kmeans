@@ -209,6 +209,7 @@ def PlotTestResults(accuracy, save_directory, trial):
     plt.close()
 
 def PlotAverageCentroidDistance(centroid_distances, save_directory, trial):
+
     save_directory = os.path.join(save_directory, "{}".format(trial))
 
     if os.path.isdir(save_directory) == False:
@@ -230,5 +231,19 @@ def SaveValues(training_accuracy, test_accuracy, trial, results_save_file):
         scoreWriter = csv.writer(csv_file)
         scoreWriter.writerow([trial, training_accuracy, test_accuracy])
 
+def PlotHistory(history, save_directory, trial):
+
+    save_directory = os.path.join(save_directory, "{}".format(trial))
+
+    plt.figure()
+    plt.grid(b=None)
+    plt.plot(history.history['loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+
+    plt.savefig(os.path.join(save_directory, "Average Centroid Distance Trial {}".format(trial)),
+                bbox_inches = 'tight', pad_inches = 0.1)
+    plt.close()
 
 

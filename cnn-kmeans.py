@@ -73,8 +73,11 @@ if __name__ == "__main__":
         if use_autoencoder:
             if not os.path.isdir('encoder_model') or train_autoencoder == True:
                 print("Training autoencoder...")
-                model = autoencoder.TrainAutoencoder(x_train, x_test, y_test, batch_size, trial, autoencoder_epochs,
+                model, history = autoencoder.TrainAutoencoder(x_train, x_test, y_test, batch_size, trial, autoencoder_epochs,
                                                      autoencoder_learning_rate, save_encoder_model, save_directory)
+
+                tools.PlotHistory(history, save_directory, trial)
+
             else:
                 print("Loading model...")
                 model = tf.keras.models.load_model('encoder_model')

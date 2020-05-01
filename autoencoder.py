@@ -98,4 +98,4 @@ def TrainAutoencoder(train_images, test_images, y_test, batch_size, trial,
         # Save encoder model
         encoder.save("encoder_model")
 
-    return encoder
+    return encoder, history

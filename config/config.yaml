@@ -7,7 +7,7 @@ trials: 1
 epochs: 100
 batch_size: 200
 learning_rate: 0.01
-use_autoencoder: False
+use_autoencoder: True
 train_autoencoder: True
 autoencoder_epochs: 50
 autoencoder_learning_rate: 0.0001

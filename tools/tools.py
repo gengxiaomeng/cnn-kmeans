@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Apr 17 15:19:42 2020
 
@@ -117,8 +116,8 @@ def EvaluateModel(x_test, y_test, model, centroids, epoch, trial, batch_size=32,
         sn.set(font_scale=0.8) # for label size
         sn.heatmap(df_cm, annot=True, annot_kws={"size": 9}, fmt="d") # font size
 
-        plt.xlabel("Centroid")
-        plt.ylabel("y_true")
+        # plt.xlabel("Centroid")
+        # plt.ylabel("y_true")
 
         if training_set:
             plt.savefig(os.path.join(save_directory, "Training Set Confusion Matrix Trial {} Epoch {}".format(trial, epoch)),

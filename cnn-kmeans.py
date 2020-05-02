@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
                 # Evaluate Model during training. This is just a test to see what the behavior is during training
                 train_pseudo_accuracy.append(tools.EvaluateModel(x_train, y_train, model, centroids, epoch,
-                                                                 trial, batch_size, False, True, save_directory))
+                                                                  trial, batch_size, False, True, save_directory))
 
                 # Evaluate Model on test set during training. This is just a test to see what the behavior is during training
                 test_pseudo_accuracy.append(tools.EvaluateModel(x_test, y_test, model, centroids, epoch,
@@ -172,9 +172,9 @@ if __name__ == "__main__":
 
 
         print("Plotting and Saving training results")
-        tools.PlotTrainingResults(train_pseudo_accuracy, train_loss_results, save_directory, trial)
-        train_pseudo_accuracy.append(tools.EvaluateModel(x_train, y_train, model, centroids, epoch,
-                                                         trial, batch_size, True, True, save_directory))
+        # tools.PlotTrainingResults(train_pseudo_accuracy, train_loss_results, save_directory, trial)
+        tools.EvaluateModel(x_train, y_train, model, centroids, epoch,
+                                                         trial, batch_size, True, True, save_directory)
 
         print("Done training! Plotting accuracy on test Set")
         tools.PlotTestResults(test_pseudo_accuracy, save_directory, trial)
